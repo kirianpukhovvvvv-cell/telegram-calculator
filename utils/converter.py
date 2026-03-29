@@ -1,5 +1,6 @@
 import requests
 import re
+from config import CURRENCY_API_URL
 
 # Таблицы конвертации
 LENGTH_CONVERSIONS = {
@@ -96,4 +97,29 @@ def get_exchange_rate(from_curr, to_curr):
                 return None
             amount_in_usd = 1 / usd_rate
         else:
-            amount_in_usd
+            amount_in_usd = 1.0
+
+        target_rate = data['rates'].get(to_curr.upper())
+        if target_rate is None:
+            return None
+
+        return amount_in_usd * target_rate
+    except Exception:
+        return None
+
+def convert_currency(expression):
+    """Конвертация валют."""
+    pattern = r'(\d+(?:\.\d+)?)\s*(\w{3})\s+в\s+(\w{3})'
+    match = re.search(pattern, expression, re.IGNORECASE)
+
+    if not match:
+        return "Формат: [сумма] [код1] в [код2] (например: 100 USD в EUR)"
+
+    amount, curr1, curr2 = match.groups()
+    amount = float(amount)
+
+    rate = get_exchange_rate(curr1, curr2)
+    if rate is None:
+        return "Ошибка получения курса валют"
+    result = amount * rate
+    return f"{amount} {curr1.upper()} = {result:.2f} {curr2.upper()}"
