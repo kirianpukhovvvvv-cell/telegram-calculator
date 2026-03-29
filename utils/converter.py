@@ -1,6 +1,5 @@
 import requests
 import re
-from sympy import sqrt, simplify, parse_expr
 
 # Таблицы конвертации
 LENGTH_CONVERSIONS = {
@@ -21,7 +20,6 @@ CURRENCY_URL = "https://api.exchangerate-api.com/v4/latest/USD"
 
 def convert_units(expression):
     """Конвертация физических величин"""
-    # Ищем шаблон: число + единица1 в единица2
     pattern = r'(\d+(?:\.\d+)?)\s*(\w+)\s+в\s+(\w+)'
     match = re.search(pattern, expression, re.IGNORECASE)
 
@@ -58,7 +56,7 @@ def get_exchange_rate(from_curr, to_curr):
             rate = data['rates'][to_curr] / usd_rate
 
         return rate
-    except:
+    except Exception:
         return None
 
 def convert_currency(expression):
@@ -75,7 +73,6 @@ def convert_currency(expression):
     rate = get_exchange_rate(curr1.upper(), curr2.upper())
     if rate is None:
         return "Ошибка получения курса валют"
-
     result = amount * rate
     return f"{amount} {curr1.upper()} = {result:.2f} {curr2.upper()}"
 
@@ -84,7 +81,8 @@ def russian_to_english(text):
     replacements = {
         'плюс': '+', 'минус': '-', 'умножить': '*', 'разделить': '/',
         'корень': 'sqrt', 'синус': 'sin', 'косинус': 'cos',
-        'тангенс': 'tan', 'котангенс': 'ctg'
+        'тангенс': 'tan', 'котангенс': 'ctg',
+        'поделить': '/'
     }
     for russian, english in replacements.items():
         text = text.replace(russian, english)
