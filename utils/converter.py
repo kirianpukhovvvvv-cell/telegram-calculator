@@ -2,7 +2,6 @@ import requests
 import re
 from config import CURRENCY_API_URL
 
-# Таблицы конвертации
 LENGTH_CONVERSIONS = {
     'м': 1, 'метр': 1,
     'см': 0.01, 'сантиметр': 0.01,
@@ -17,7 +16,6 @@ WEIGHT_CONVERSIONS = {
     'мг': 0.000001, 'миллиграмм': 0.000001
 }
 
-# Словарь чисел русскими словами
 RUSSIAN_NUMBERS = {
     # Единицы
     'ноль': 0, 'один': 1, 'два': 2, 'три': 3, 'четыре': 4,
@@ -121,5 +119,6 @@ def convert_currency(expression):
     rate = get_exchange_rate(curr1, curr2)
     if rate is None:
         return "Ошибка получения курса валют"
+
     result = amount * rate
     return f"{amount} {curr1.upper()} = {result:.2f} {curr2.upper()}"
