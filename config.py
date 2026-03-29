@@ -4,4 +4,5 @@ from dotenv import load_dotenv
 load_dotenv()
 
 BOT_TOKEN = os.getenv('BOT_TOKEN')
-CURRENCY_API_URL = "https://api.exchangerate-api.com/v4/latest/USD"
+if not BOT_TOKEN:
+    raise ValueError("BOT_TOKEN не найден в переменных окружения. Проверьте файл .env.")
