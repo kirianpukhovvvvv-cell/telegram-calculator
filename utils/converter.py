@@ -1,7 +1,7 @@
 import requests
 import re
 
-# Таблицы конвертации (остаются без изменений)
+# Таблицы конвертации
 LENGTH_CONVERSIONS = {
     'м': 1, 'метр': 1,
     'см': 0.01, 'сантиметр': 0.01,
@@ -40,94 +40,4 @@ RUSSIAN_NUMBERS = {
     'триллион': 1_000_000_000_000, 'триллиона': 1_000_000_000_000, 'триллионов': 1_000_000_000_000,
     'квадриллион': 1_000_000_000_000_000, 'квадриллиона': 1_000_000_000_000_000, 'квадриллионов': 1_000_000_000_000_000,
     'квинтиллион': 1_000_000_000_000_000_000, 'квинтиллиона': 1_000_000_000_000_000_000, 'квинтиллионов': 1_000_000_000_000_000_000,
-    'секстиллион': 1_000_000_000_000_000_000_000, 'секстиллиона': 1_000_000_000_000_000_000_000, 'секстиллионов': 1_000_000_000_000_000_000_000
-}
-
-def words_to_number(text):
-    """Преобразует текст с русскими числами в числовое значение"""
-    words = text.lower().split()
-    result = 0
-    current = 0
-
-    for word in words:
-        if word in RUSSIAN_NUMBERS:
-            value = RUSSIAN_NUMBERS[word]
-
-            if value >= 1000:  # Масштабные единицы (тысяча, миллион и т.д.)
-                if current == 0:
-                    current = 1
-                result += current * value
-                current = 0
-            else:
-                current += value
-
-    result += current
-    return result
-
-def convert_units(expression):
-    """Конвертация физических величин"""
-    pattern = r'(\d+(?:\.\d+)?)\s*(\w+)\s+в\s+(\w+)'
-    match = re.search(pattern, expression, re.IGNORECASE)
-
-    if not match:
-        return "Формат: [число] [единица1] в [единица2]"
-
-    value, unit1, unit2 = match.groups()
-    value = float(value)
-
-    # Определяем тип величины
-    if unit1 in LENGTH_CONVERSIONS and unit2 in LENGTH_CONVERSIONS:
-        base_value = value * LENGTH_CONVERSIONS[unit1]
-        result = base_value / LENGTH_CONVERSIONS[unit2]
-        return f"{value} {unit1} = {result} {unit2}"
-
-    elif unit1 in WEIGHT_CONVERSIONS and unit2 in WEIGHT_CONVERSIONS:
-        base_value = value * WEIGHT_CONVERSIONS[unit1]
-        result = base_value / WEIGHT_CONVERSIONS[unit2]
-        return f"{value} {unit1} = {result} {unit2}"
-
-    else:
-        return "Неподдерживаемые единицы измерения"
-
-def get_exchange_rate(from_curr, to_curr):
-    """Получение курса валют"""
-    try:
-        response = requests.get(CURRENCY_URL)
-        data = response.json()
-
-        if from_curr == 'USD':
-            rate = data['rates'][to_curr]
-        else:
-            usd_rate = data['rates'][from_curr]
-            rate = data['rates'][to_curr] / usd_rate
-
-        return rate
-    except Exception:
-        return None
-
-def convert_currency(expression):
-    """Конвертация валют"""
-    pattern = r'(\d+(?:\.\d+)?)\s*(\w{3})\s+в\s+(\w{3})'
-    match = re.search(pattern, expression, re.IGNORECASE)
-
-    if not match:
-        return "Формат: [сумма] [код1] в [код2] (например: 100 USD в EUR)"
-
-    amount, curr1, curr2 = match.groups()
-    amount = float(amount)
-
-    rate = get_exchange_rate(curr1.upper(), curr2.upper())
-    if rate is None:
-        return "Ошибка получения курса валют"
-    result = amount * rate
-    return f"{amount} {curr1.upper()} = {result:.2f} {curr2.upper()}"
-
-def russian_to_english(text):
-    """Перевод русских математических терминов и чисел в английские"""
-    # Сначала заменяем числа
-    text_with_numbers = str(words_to_number(text))
-
-    # Затем заменяем математические термины
-    replacements = {
-        'плюс': '+', 'минус': '-', 'умножить': '*', 'разделить': '/',
-        'поделить': '/', 'корень': 'sqrt', 'синус': 'sin',
+    'сек
