@@ -21,15 +21,12 @@ def russian_to_english(text):
     # Добавляем закрывающие скобки для корней
     sqrt_count = result.count('math.sqrt(')
     result += ')' * sqrt_count
-
     return result
 
 def calculate_expression(expression):
     """Вычисляет математическое выражение после преобразования из русского формата."""
     try:
-        # Преобразуем выражение
         converted_expr = russian_to_english(expression)
-        # Вычисляем результат
         result = eval(converted_expr, {"__builtins__": {}, "math": math})
         return float(result)
     except Exception as e:
@@ -37,7 +34,6 @@ def calculate_expression(expression):
 
 def is_mathematical_expression(text):
     """Проверяет, является ли текст математическим выражением."""
-    # Регулярное выражение для поиска математических операторов и чисел
     math_pattern = r'[\+\-\*/\(\)\d\.\s]|math\.sqrt|корень'
     return bool(re.search(math_pattern, text.lower()))
 
