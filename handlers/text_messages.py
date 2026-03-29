@@ -1,33 +1,28 @@
-from telegram import Update
-from telegram.ext import ContextTypes
-from utils.calculator import process_math_message
-from utils.converter import convert_units, convert_currency
+import telebot
+from utils.calculator import calculate
 
-async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Обработчик текстовых сообщений"""
-    text = update.message.text
+def register_handlers(bot):
+    @bot.message_handler(func=lambda message: True)
+    def handle_calculation(message):
+        text = message.text.strip()
 
-    # Проверяем математические выражения
-    math_result = process_math_message(text)
-    if math_result:
-        await update.message.reply_text(math_result)
-        return
+        # Проверка на математические функции
+        if any(func in text for func in ['sqrt(', 'sin(', 'cos(', 'tan(', 'ctg(']):
+            result = calculate(text)
+            bot.reply_to(message, f"Результат: {result}")
+            return
 
-    # Проверяем конвертацию единиц
-    unit_result = convert_units(text)
-    # Если результат не содержит сообщение о формате или неподдерживаемых единицах, значит, конвертация прошла успешно
-    if "Формат:" not in unit_result and "Неподдерживаемые" not in unit_result:
-        await update.message.reply_text(unit_result)
-        return
-
-    # Проверяем конвертацию валют
-    currency_result = convert_currency(text)
-    # Если результат не содержит сообщения об ошибке или формате, значит, конвертация прошла успешно
-    if "Формат:" not in currency_result and "Ошибка" not in currency_result:
-        await update.message.reply_text(currency_result)
-        return
-
-    # Если ни один обработчик не сработал, отправляем подсказку
-    await update.message.reply_text(
-        "Не понял команду. Используйте /help для справки."
-    )
+        # Базовые операции и дроби
+        allowed_chars = set('0123456789+-*/. ()sqrt')
+        if all(c in allowed_chars for c in text) and any(op in text for op in '+-*/'):
+            result = calculate(text)
+            bot.reply_to(message, f"Результат: {result}")
+        else:
+            bot.reply_to(
+                message,
+                "Отправьте математическое выражение:\n"
+                "• Базовые: 2+3, 5*4\n"
+                "• Дроби: 1/2 + 1/3\n"
+                "• Корни: sqrt(2), sqrt(8)/2\n"
+                "• Тригонометрия: sin(30), cos(60)"
+            )
