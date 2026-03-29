@@ -1,5 +1,5 @@
-import math
-import re
+from sympy import sqrt, simplify, Rational
+from sympy.parsing.sympy_parser import parse_expr
 
 def russian_to_english(text):
     """Преобразует русские математические выражения в формат, понятный для вычисления."""
@@ -18,32 +18,25 @@ def russian_to_english(text):
     for russian_term, english_symbol in replacements.items():
         result = result.replace(russian_term, english_symbol)
 
-    # Добавляем закрывающие скобки для корней
-    sqrt_count = result.count('math.sqrt(')
-    result += ')' * sqrt_count
-    return result
-
-def calculate_expression(expression):
-    """Вычисляет математическое выражение после преобразования из русского формата."""
+def calculate(expression):
     try:
-        converted_expr = russian_to_english(expression)
-        result = eval(converted_expr, {"__builtins__": {}, "math": math})
-        return float(result)
+        # Заменяем sqrt на sympy.sqrt для корректной обработки
+        expression = expression.replace('sqrt', 'sqrt')
+
+        # Парсим выражение с поддержкой корней и дробей
+        expr = parse_expr(expression)
+
+
+        # Упрощаем выражение (сокращаем дроби, упрощаем корни)
+        simplified = simplify(expr)
+
+        # Если результат — дробь, представляем в виде числитель/знаменатель
+        if simplified.is_rational:
+            return str(simplified)
+        else:
+            # Для иррациональных чисел — вычисляем численно с округлением
+            numeric_result = float(simplified.evalf())
+            return f"{simplified} ≈ {numeric_result:.6f}"
+
     except Exception as e:
-        raise ValueError(f"Ошибка вычисления: {str(e)}")
-
-def is_mathematical_expression(text):
-    """Проверяет, является ли текст математическим выражением."""
-    math_pattern = r'[\+\-\*/\(\)\d\.\s]|math\.sqrt|корень'
-    return bool(re.search(math_pattern, text.lower()))
-
-def process_math_message(text):
-    """Основная функция обработки математических сообщений."""
-    if not is_mathematical_expression(text):
-        return None
-
-    try:
-        result = calculate_expression(text)
-        return f"Результат: {result}"
-    except ValueError as e:
-        return str(e)
+        return f"Ошибка: {str(e)}"
