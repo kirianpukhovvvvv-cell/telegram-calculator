@@ -13,9 +13,16 @@ def register_handlers(bot):
             return
 
         # Базовые операции и дроби
-        allowed_chars = set('0123456789+-*/. ')
+        allowed_chars = set('0123456789+-*/. ()sqrt')
         if all(c in allowed_chars for c in text) and any(op in text for op in '+-*/'):
             result = calculate(text)
             bot.reply_to(message, f"Результат: {result}")
         else:
-            bot.reply_to(message, "Отправьте математическое выражение (например: 2+2, 1/2, sqrt(16), sin(30))")
+            bot.reply_to(
+                message,
+                "Отправьте математическое выражение:\n"
+                "• Базовые: 2+3, 5*4\n"
+                "• Дроби: 1/2 + 1/3\n"
+                "• Корни: sqrt(2), sqrt(8)/2\n"
+                "• Тригонометрия: sin(30), cos(60)"
+            )
