@@ -109,4 +109,24 @@ def convert_currency(expression):
     pattern = r'(\d+(?:\.\d+)?)\s*(\w{3})\s+в\s+(\w{3})'
     match = re.search(pattern, expression, re.IGNORECASE)
 
-    if not
+    if not match:
+        return "Формат: [сумма] [код1] в [код2] (например: 100 USD в EUR)"
+
+    amount, curr1, curr2 = match.groups()
+    amount = float(amount)
+
+    rate = get_exchange_rate(curr1.upper(), curr2.upper())
+    if rate is None:
+        return "Ошибка получения курса валют"
+    result = amount * rate
+    return f"{amount} {curr1.upper()} = {result:.2f} {curr2.upper()}"
+
+def russian_to_english(text):
+    """Перевод русских математических терминов и чисел в английские"""
+    # Сначала заменяем числа
+    text_with_numbers = str(words_to_number(text))
+
+    # Затем заменяем математические термины
+    replacements = {
+        'плюс': '+', 'минус': '-', 'умножить': '*', 'разделить': '/',
+        'поделить': '/', 'корень': 'sqrt', 'синус': 'sin', 'косинус':
