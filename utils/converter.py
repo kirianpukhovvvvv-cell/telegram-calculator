@@ -1,7 +1,7 @@
 import requests
 import re
 
-# Таблицы конвертации
+# Таблицы конвертации (остаются без изменений)
 LENGTH_CONVERSIONS = {
     'м': 1, 'метр': 1,
     'см': 0.01, 'сантиметр': 0.01,
@@ -18,7 +18,7 @@ WEIGHT_CONVERSIONS = {
 
 CURRENCY_URL = "https://api.exchangerate-api.com/v4/latest/USD"
 
-# Словарь чисел русскими словами (полный)
+# Словарь чисел русскими словами (расширенный)
 RUSSIAN_NUMBERS = {
     # Единицы
     'ноль': 0, 'один': 1, 'два': 2, 'три': 3, 'четыре': 4,
@@ -53,7 +53,7 @@ def words_to_number(text):
         if word in RUSSIAN_NUMBERS:
             value = RUSSIAN_NUMBERS[word]
 
-            if value >= 1000:  # Масштабные единицы (тысяча, миллион и т. д.)
+            if value >= 1000:  # Масштабные единицы (тысяча, миллион и т.д.)
                 if current == 0:
                     current = 1
                 result += current * value
@@ -85,6 +85,7 @@ def convert_units(expression):
         base_value = value * WEIGHT_CONVERSIONS[unit1]
         result = base_value / WEIGHT_CONVERSIONS[unit2]
         return f"{value} {unit1} = {result} {unit2}"
+
     else:
         return "Неподдерживаемые единицы измерения"
 
@@ -129,4 +130,4 @@ def russian_to_english(text):
     # Затем заменяем математические термины
     replacements = {
         'плюс': '+', 'минус': '-', 'умножить': '*', 'разделить': '/',
-        'поделить': '/', 'корень': 'sqrt', 'синус': 'sin', 'косинус':
+        'поделить': '/', 'корень': 'sqrt', 'синус': 'sin',
