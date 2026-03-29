@@ -1,6 +1,6 @@
 import logging
 from telegram import Update
-from telegram.ext import Application, MessageHandler, filters, ContextTypes
+from telegram.ext import Application, MessageHandler, filters, ContextTypes, CommandHandler
 from calculator import calculate_expression, validate_and_format_input
 
 # Настройка логирования
@@ -10,7 +10,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Токен бота (уже в окружении bothost.ru)
+# Токен бота
 BOT_TOKEN = "8291462397:AAE94xlijZUL45k03wfnWlzXBOKUItNB2cQ"
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -79,9 +79,9 @@ def main():
     application = Application.builder().token(BOT_TOKEN).build()
 
     # Добавляем обработчики
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
     application.add_handler(CommandHandler("start", start_command))
     application.add_handler(CommandHandler("help", help_command))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
     # Запускаем бота
     print("Бот запущен и готов к работе!")
