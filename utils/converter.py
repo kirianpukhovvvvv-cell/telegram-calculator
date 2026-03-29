@@ -16,8 +16,6 @@ WEIGHT_CONVERSIONS = {
     'мг': 0.000001, 'миллиграмм': 0.000001
 }
 
-CURRENCY_URL = "https://api.exchangerate-api.com/v4/latest/USD"
-
 # Словарь чисел русскими словами (полный)
 RUSSIAN_NUMBERS = {
     # Единицы
@@ -38,9 +36,6 @@ RUSSIAN_NUMBERS = {
     'миллион': 1_000_000, 'миллиона': 1_000_000, 'миллионов': 1_000_000,
     'миллиард': 1_000_000_000, 'миллиарда': 1_000_000_000, 'миллиардов': 1_000_000_000,
     'триллион': 1_000_000_000_000, 'триллиона': 1_000_000_000_000, 'триллионов': 1_000_000_000_000,
-    'квадриллион': 1_000_000_000_000_000, 'квадриллиона': 1_000_000_000_000_000, 'квадриллионов': 1_000_000_000_000_000,
-    'квинтиллион': 1_000_000_000_000_000_000, 'квинтиллиона': 1_000_000_000_000_000_000, 'квинтиллионов': 1_000_000_000_000_000_000,
-    'секстиллион': 1_000_000_000_000_000_000_000, 'секстиллиона': 1_000_000_000_000_000_000_000, 'секстиллионов': 1_000_000_000_000_000_000_000
 }
 
 def words_to_number(text):
@@ -52,7 +47,6 @@ def words_to_number(text):
     for word in words:
         if word in RUSSIAN_NUMBERS:
             value = RUSSIAN_NUMBERS[word]
-
             if value >= 1000:  # Масштабные единицы (тысяча, миллион и т. д.)
                 if current == 0:
                     current = 1
@@ -60,7 +54,6 @@ def words_to_number(text):
                 current = 0
             else:
                 current += value
-
     result += current
     return result
 
@@ -91,7 +84,7 @@ def convert_units(expression):
 def get_exchange_rate(from_curr, to_curr):
     """Получение курса валют"""
     try:
-        response = requests.get(CURRENCY_URL)
+        response = requests.get(CURRENCY_APIURL)
         data = response.json()
 
         if from_curr == to_curr:
@@ -99,14 +92,14 @@ def get_exchange_rate(from_curr, to_curr):
 
         # Если валюта не USD, сначала переводим в USD, затем в целевую
         if from_curr != 'USD':
-            usd_rate = data['rates'].get(from_curr)
+            usd_rate = data['rates'].get(from_curr.upper())
             if usd_rate is None:
                 return None
             amount_in_usd = 1 / usd_rate
         else:
             amount_in_usd = 1.0
 
-        target_rate = data['rates'].get(to_curr)
+        target_rate = data['rates'].get(to_curr.upper())
         if target_rate is None:
             return None
 
@@ -125,67 +118,8 @@ def convert_currency(expression):
     amount, curr1, curr2 = match.groups()
     amount = float(amount)
 
-    rate = get_exchange_rate(curr1.upper(), curr2.upper())
+    rate = get_exchange_rate(curr1, curr2)
     if rate is None:
         return "Ошибка получения курса валют"
     result = amount * rate
     return f"{amount} {curr1.upper()} = {result:.2f} {curr2.upper()}"
-
-def russian_to_english(text):
-    """
-    Преобразует русские математические выражения в формат, понятный для вычисления.
-    Поддерживает: +, -, *, /, √ (корень), числа словами.
-    """
-    # Словарь замен математических терминов
-    replacements = {
-        'плюс': '+',
-        'минус': '-',
-        'умножить на': '*',
-        'разделить на': '/',
-        'поделить на': '/',  # альтернативный вариант
-        'делить на': '/',     # ещё один вариант
-        'корень из': 'sqrt(',
-        'квадратный корень из': 'sqrt('
-    }
-
-    # Сначала заменяем математические термины
-    result = text.lower()
-    for russian_term, english_symbol in replacements.items():
-        result = result.replace(russian_term, english_symbol)
-
-    # Добавляем закрывающие скобки для корней (каждому 'sqrt(' соответствует одна ')')
-    sqrt_count = result.count('sqrt(')
-    result += ')' * sqrt_count
-
-    # Заменяем русские числа на цифры
-    words = result.split()
-    processed_words = []
-
-    for word in words:
-        # Проверяем, является ли слово числом на русском
-        if word in RUSSIAN_NUMBERS:
-            processed_words.append(str(RUSSIAN_NUMBERS[word]))
-        else:
-            # Оставляем как есть (операторы, скобки и т. д.)
-            processed_words.append(word)
-
-    final_expression = ' '.join(processed_words)
-    return final_expression
-
-
-
-def calculate_expression(expression):
-    """
-    Вычисляет математическое выражение после преобразования из русского формата.
-    """
-    try:
-        # Преобразуем выражение
-        converted_expr = russian_to_english(expression)
-        # Заменяем sqrt на math.sqrt для корректного вычисления
-        import math
-        safe_expr = converted_expr.replace('sqrt', 'math.sqrt')
-        # Вычисляем результат
-        result = eval(safe_expr)
-        return f"Результат: {result}"
-    except Exception as e:
-        return f"Ошибка вычисления: {str(e)}"
