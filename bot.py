@@ -10,8 +10,10 @@ def is_bot_already_running():
     current_process = psutil.Process()
     for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
         try:
+            # Пропускаем текущий процесс
             if proc.info['pid'] == current_process.pid:
                 continue
+            # Проверяем, есть ли в командной строке запуска упоминание бота
             cmdline = proc.info.get('cmdline', [])
             if cmdline and any('bot.py' in arg for arg in cmdline):
                 return True
@@ -31,13 +33,13 @@ def main():
     application.add_handler(CommandHandler("start", start_command))
     application.add_handler(CommandHandler("help", help_command))
 
-    # Добавляем обработчик текстовых сообщений
+    # Добавляем обработчик текстовых сообщений (обрабатывает все текстовые сообщения, кроме команд)
     application.add_handler(
         MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text_message)
     )
 
-    # Запускаем бота
-    print("Бот запущен...")
+    # Запускаем бота в режиме polling
+    print("Бот запущен и готов к работе...")
     application.run_polling()
 
 if __name__ == "__main__":
