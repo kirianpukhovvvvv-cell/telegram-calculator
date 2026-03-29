@@ -1,26 +1,25 @@
-from sympy import sqrt, simplify, Rational
-from sympy.parsing.sympy_parser import parse_expr
-
+from sympy import sqrt, simplify, parse_expr
+from utils.converter import russian_to_english, convert_units, convert_currency
 
 def calculate(expression):
+    # Перевод русских терминов
+    expression = russian_to_english(expression)
+
+    # Проверка на конвертацию
+    if 'в' in expression and any(word in expression for word in ['метр', 'грамм', 'USD']):
+        if any(curr in expression.upper() for curr in ['USD', 'EUR', 'RUB']):
+            return convert_currency(expression)
+        else:
+            return convert_units(expression)
+
+    # Обработка математических выражений
     try:
-        # Заменяем sqrt на sympy.sqrt для корректной обработки
-        expression = expression.replace('sqrt', 'sqrt')
-
-        # Парсим выражение с поддержкой корней и дробей
         expr = parse_expr(expression)
-
-
-        # Упрощаем выражение (сокращаем дроби, упрощаем корни)
         simplified = simplify(expr)
-
-        # Если результат — дробь, представляем в виде числитель/знаменатель
         if simplified.is_rational:
             return str(simplified)
         else:
-            # Для иррациональных чисел — вычисляем численно с округлением
             numeric_result = float(simplified.evalf())
             return f"{simplified} ≈ {numeric_result:.6f}"
-
     except Exception as e:
         return f"Ошибка: {str(e)}"
