@@ -1,28 +1,29 @@
-import telebot
-from utils.calculator import calculate
+import re
+from telegram import Update
+from telegram.ext import ContextTypes
+from utils.calculator import calculate, words_to_number
+from utils.converter import convert_units
 
-def register_handlers(bot):
-    @bot.message_handler(func=lambda message: True)
-    def handle_calculation(message):
-        text = message.text.strip()
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    text = update.message.text.lower()
 
-        # Проверка на математические функции
-        if any(func in text for func in ['sqrt(', 'sin(', 'cos(', 'tan(', 'ctg(']):
-            result = calculate(text)
-            bot.reply_to(message, f"Результат: {result}")
-            return
+    # Проверка на конвертацию единиц
+    convert_match = re.match(r'(\d+(?:\.\d+)?|[а-яё\s]+)\s*([а-яё]+)\s+в\s+([а-яё]+)', text)
+    if convert_match:
+        value_str, from_unit, to_unit = convert_match.groups()
+        try:
+            # Если число задано словами, конвертируем
+            if any(word in value_str for word in ['ноль', 'один', 'два', 'три', 'четыре', 'пять',
+                                                   'шесть', 'семь', 'восемь', 'девять', 'десять']):
+                value = words_to_number(value_str)
+            else:
+                value = float(value_str)
+            response = convert_units(value, from_unit, to_unit)
+        except ValueError:
+            response = "Не удалось распознать число."
+        await update.message.reply_text(response)
+        return
 
-        # Базовые операции и дроби
-        allowed_chars = set('0123456789+-*/. ()sqrt')
-        if all(c in allowed_chars for c in text) and any(op in text for op in '+-*/'):
-            result = calculate(text)
-            bot.reply_to(message, f"Результат: {result}")
-        else:
-            bot.reply_to(
-                message,
-                "Отправьте математическое выражение:\n"
-                "• Базовые: 2+3, 5*4\n"
-                "• Дроби: 1/2 + 1/3\n"
-                "• Корни: sqrt(2), sqrt(8)/2\n"
-                "• Тригонометрия: sin(30), cos(60)"
-            )
+    # Если не конвертация, пробуем вычислить как математическое выражение
+    response = calculate(text)
+    await update.message.reply_text(response)
