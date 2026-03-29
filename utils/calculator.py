@@ -71,3 +71,36 @@ def calculate(expression: str) -> str:
         if 'sin' in parsed_expr:
             parsed_expr = parsed_expr.replace('sin', 'math.sin')
         if 'cos' in parsed_
+def calculate(expression: str) -> str:
+    """Вычисляет математическое выражение с поддержкой русского языка."""
+    try:
+        # Парсим русское выражение
+        parsed_expr = parse_russian_math(expression)
+
+        # Выполняем вычисления
+        if 'sqrt' in parsed_expr:
+            parsed_expr = parsed_expr.replace('sqrt', 'math.sqrt')
+        if 'sin' in parsed_expr:
+            parsed_expr = parsed_expr.replace('sin', 'math.sin')
+        if 'cos' in parsed_expr:
+            parsed_expr = parsed_expr.replace('cos', 'math.cos')
+        if 'tan' in parsed_expr:
+            parsed_expr = parsed_expr.replace('tan', 'math.tan')
+        if 'ctg' in parsed_expr:
+            # Котангенс = 1/tan
+            parsed_expr = parsed_expr.replace('ctg', '1/math.tan')
+
+        # Если есть «градусов», конвертируем в радианы
+        if 'градусов' in expression:
+            # Находим число перед «градусов» и конвертируем его
+            degree_match = re.search(r'(\d+(?:\.\d+)?)\s*градусов', parsed_expr)
+            if degree_match:
+                degrees = float(degree_match.group(1))
+                radians = math.radians(degrees)
+                parsed_expr = re.sub(r'\d+(?:\.\d+)?\s*градусов', str(radians), parsed_expr)
+
+        # Безопасное вычисление с использованием eval (в продакшене лучше использовать парсер)
+        result = eval(parsed_expr, {"__builtins__": {}}, {"math": math})
+        return f"Результат: {result}"
+    except Exception as e:
+        return f"Ошибка в выражении: {str(e)}"
