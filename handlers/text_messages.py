@@ -1,29 +1,22 @@
-import re
-from telegram import Update
-from telegram.ext import ContextTypes
-from utils.calculator import calculate, words_to_number
-from utils.converter import convert_units
+from telegram.ext import Application, CommandHandler, MessageHandler, filters
+from config import BOT_TOKEN
+from handlers.commands import start_command, help_command, convert_command
+from handlers.text_messages import handle_message
 
-async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    text = update.message.text.lower()
+def main():
+    app = Application.builder().token(BOT_TOKEN).build()
 
-    # Проверка на конвертацию единиц
-    convert_match = re.match(r'(\d+(?:\.\d+)?|[а-яё\s]+)\s*([а-яё]+)\s+в\s+([а-яё]+)', text)
-    if convert_match:
-        value_str, from_unit, to_unit = convert_match.groups()
-        try:
-            # Если число задано словами, конвертируем
-            if any(word in value_str for word in ['ноль', 'один', 'два', 'три', 'четыре', 'пять',
-                                                   'шесть', 'семь', 'восемь', 'девять', 'десять']):
-                value = words_to_number(value_str)
-            else:
-                value = float(value_str)
-            response = convert_units(value, from_unit, to_unit)
-        except ValueError:
-            response = "Не удалось распознать число."
-        await update.message.reply_text(response)
-        return
+    # Регистрируем обработчики команд
+    app.add_handler(CommandHandler("start", start_command))
+    app.add_handler(CommandHandler("help", help_command))
+    app.add_handler(CommandHandler("convert", convert_command))
 
-    # Если не конвертация, пробуем вычислить как математическое выражение
-    response = calculate(text)
-    await update.message.reply_text(response)
+    # Регистрируем обработчик текстовых сообщений (все остальные сообщения)
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+
+    # Запускаем бота
+    print("Бот запущен...")
+    app.run_polling()
+
+if __name__ == "__main__":
+    main()
