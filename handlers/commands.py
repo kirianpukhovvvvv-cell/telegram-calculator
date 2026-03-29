@@ -1,17 +1,28 @@
-from telebot import TeleBot
-from telebot.types import Message
+from telegram import Update
+from telegram.ext import ContextTypes
 
-def register_handlers(bot: TeleBot):
-    @bot.message_handler(commands=['start'])
-    def start_command(message: Message):
-        bot.reply_to(message, "Привет! Я калькулятор-бот. Напиши выражение (например, 2+2).")
+async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обработчик команды /start"""
+    await update.message.reply_text(
+        "Привет! Я калькулятор-бот. \n\n"
+        "Что я умею:\n"
+        "• 2 + 2\n"
+        "• корень из 16\n"
+        "• 100 USD в EUR\n"
+        "• 5 м в см\n"
+        "• пять умножить на три"
+    )
 
-    @bot.message_handler(commands=['help'])
-    def help_command(message: Message):
-        help_text = """
-Доступные команды:
-/start – Начать работу с ботом
-/help – Показать это сообщение
-Просто напиши математическое выражение (2+2, 5*3 и т. д.)
-"""
-        bot.send_message(message.chat.id, help_text)
+async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обработчик команды /help"""
+    await update.message.reply_text(
+        "Доступные команды:\n"
+        "/start — начать работу\n"
+        "/help — показать эту справку\n\n"
+        "Примеры математических выражений:\n"
+        "2 + 2\n"
+        "корень из 25\n"
+        "пять умножить на шесть\n"
+        "100 USD в EUR\n"
+        "5 м в см"
+    )
