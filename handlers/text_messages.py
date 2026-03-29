@@ -1,12 +1,21 @@
-from telebot import TeleBot
-from telebot.types import Message
+import telebot
 from utils.calculator import calculate
 
-def register_handlers(bot: TeleBot):
-    @bot.message_handler(content_types=['text'])
-    def handle_text(message: Message):
+def register_handlers(bot):
+    @bot.message_handler(func=lambda message: True)
+    def handle_calculation(message):
         text = message.text.strip()
-        if text.startswith('/'):
-            return  # Игнорируем неизвестные команды
-        result = calculate(text)
-        bot.send_message(message.chat.id, f"Результат: `{result}`")
+
+        # Проверка на математические функции
+        if any(func in text for func in ['sqrt(', 'sin(', 'cos(', 'tan(', 'ctg(']):
+            result = calculate(text)
+            bot.reply_to(message, f"Результат: {result}")
+            return
+
+        # Базовые операции и дроби
+        allowed_chars = set('0123456789+-*/. ')
+        if all(c in allowed_chars for c in text) and any(op in text for op in '+-*/'):
+            result = calculate(text)
+            bot.reply_to(message, f"Результат: {result}")
+        else:
+            bot.reply_to(message, "Отправьте математическое выражение (например: 2+2, 1/2, sqrt(16), sin(30))")
