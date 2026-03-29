@@ -16,7 +16,7 @@ WEIGHT_CONVERSIONS = {
     'мг': 0.000001, 'миллиграмм': 0.000001
 }
 
-# Словарь чисел русскими словами (полный)
+# Словарь чисел русскими словами
 RUSSIAN_NUMBERS = {
     # Единицы
     'ноль': 0, 'один': 1, 'два': 2, 'три': 3, 'четыре': 4,
@@ -35,11 +35,10 @@ RUSSIAN_NUMBERS = {
     'тысяча': 1000, 'тысячи': 1000, 'тысяч': 1000,
     'миллион': 1_000_000, 'миллиона': 1_000_000, 'миллионов': 1_000_000,
     'миллиард': 1_000_000_000, 'миллиарда': 1_000_000_000, 'миллиардов': 1_000_000_000,
-    'триллион': 1_000_000_000_000, 'триллиона': 1_000_000_000_000, 'триллионов': 1_000_000_000_000,
 }
 
 def words_to_number(text):
-    """Преобразует текст с русскими числами в числовое значение"""
+    """Преобразует текст с русскими числами в числовое значение."""
     words = text.lower().split()
     result = 0
     current = 0
@@ -58,7 +57,7 @@ def words_to_number(text):
     return result
 
 def convert_units(expression):
-    """Конвертация физических величин"""
+    """Конвертация физических величин."""
     pattern = r'(\d+(?:\.\d+)?)\s*(\w+)\s+в\s+(\w+)'
     match = re.search(pattern, expression, re.IGNORECASE)
 
@@ -82,9 +81,9 @@ def convert_units(expression):
         return "Неподдерживаемые единицы измерения"
 
 def get_exchange_rate(from_curr, to_curr):
-    """Получение курса валют"""
+    """Получение курса валют."""
     try:
-        response = requests.get(CURRENCY_APIURL)
+        response = requests.get(CURRENCY_API_URL)
         data = response.json()
 
         if from_curr == to_curr:
@@ -97,29 +96,4 @@ def get_exchange_rate(from_curr, to_curr):
                 return None
             amount_in_usd = 1 / usd_rate
         else:
-            amount_in_usd = 1.0
-
-        target_rate = data['rates'].get(to_curr.upper())
-        if target_rate is None:
-            return None
-
-        return amount_in_usd * target_rate
-    except Exception:
-        return None
-
-def convert_currency(expression):
-    """Конвертация валют"""
-    pattern = r'(\d+(?:\.\d+)?)\s*(\w{3})\s+в\s+(\w{3})'
-    match = re.search(pattern, expression, re.IGNORECASE)
-
-    if not match:
-        return "Формат: [сумма] [код1] в [код2] (например: 100 USD в EUR)"
-
-    amount, curr1, curr2 = match.groups()
-    amount = float(amount)
-
-    rate = get_exchange_rate(curr1, curr2)
-    if rate is None:
-        return "Ошибка получения курса валют"
-    result = amount * rate
-    return f"{amount} {curr1.upper()} = {result:.2f} {curr2.upper()}"
+            amount_in_usd
