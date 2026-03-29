@@ -26,3 +26,9 @@ def register_handlers(bot):
                 "• Корни: sqrt(2), sqrt(8)/2\n"
                 "• Тригонометрия: sin(30), cos(60)"
             )
+def register_handlers(bot):
+    @bot.message_handler(func=lambda message: True)
+    def handle_calculation(message):
+        text = message.text.strip()
+        result = calculate(text)
+        bot.reply_to(message, f"Результат: {result}")
