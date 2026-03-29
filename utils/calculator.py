@@ -2,7 +2,7 @@ from sympy import sqrt, simplify, parse_expr
 from utils.converter import russian_to_english, convert_units, convert_currency
 
 def calculate(expression):
-    # Перевод русских терминов
+    # Перевод русских терминов и чисел
     expression = russian_to_english(expression)
 
     # Проверка на конвертацию
