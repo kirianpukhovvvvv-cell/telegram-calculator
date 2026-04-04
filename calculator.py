@@ -28,7 +28,7 @@ def calculate(expression):
 
     try:
         # Парсим выражение с помощью sympy
-        expr = parse_expr(expression, evaluate=False)  # evaluate=False для символьного представления
+        expr = parse_expr(expression, evaluate=False)
 
         # Упрощаем выражение перед вычислением
         simplified_expr = simplify(expr)
@@ -51,16 +51,10 @@ def calculate(expression):
                 f"Точное: {exact_result}\n"
                 f"Упрощённое: {simplified_expr}"
             )
-                else:
-                    return (
-                f"Десятичное: {decimal_result:.6f}\n"
-                f"Точное: {exact_result}\n"
-                f"Упрощённое: {simplified_expr}"
-            )
             except (ValueError, TypeError):
                 return (
                     f"Десятичное: {decimal_result:.6f}\n"
-            f"Точное: {exact_result}\n"
+                    f"Точное: {exact_result}\n"
             f"Упрощённое: {simplified_expr}"
         )
         elif exact_result.has(I):
@@ -81,7 +75,6 @@ def calculate(expression):
                 f"Десятичное: {decimal_result:.6f}\n"
                 f"Упрощённое: {simplified_expr}"
             )
-
     except Exception as e:
         return f"Ошибка вычисления: {str(e)}"
 
