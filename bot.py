@@ -9,6 +9,7 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
+logger = logging.getLogger(__name__)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Обработчик команды /start"""
@@ -19,15 +20,17 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 • Арифметика: +, -, *, /
 • Тригонометрия: sin, cos, tg, ctg
 • Квадратный корень: sqrt
-• Дроби: Fraction(числитель, знаменатель)
+• Дроби: 1/2, 3/4 и т. д.
+• Константы: pi, e
 • Скобки: ( )
 
 Примеры:
 2 + 3
 sin(0.5)
 sqrt(16)
-Fraction(1,2) + Fraction(1,3)
+1/2 + 1/3
 (2 + 3) * 4
+tg(pi/4)
 
 Просто отправьте математическое выражение!
     """
@@ -36,6 +39,7 @@ Fraction(1,2) + Fraction(1,3)
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Обработчик входящих сообщений с математическими выражениями"""
     user_input = update.message.text
+    logger.info(f"Получено выражение от пользователя {update.effective_user.id}: {user_input}")
 
     # Вычисляем результат
     result = calculate(user_input)
