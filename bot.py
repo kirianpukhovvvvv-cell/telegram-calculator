@@ -4,6 +4,7 @@ from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 from calculator import calculate
 from config import BOT_TOKEN
+from telegram.error import Conflict
 
 # Настройка логирования
 logging.basicConfig(
@@ -44,11 +45,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 • Число Эйлера: `e` или `E`
 • Мнимая единица: `I`
 
-🧩 **Дополнительные возможности:**
-• Дроби: `1/2`, `3/4`
-• Скобки: `(2 + 3) * 4`
-• Символьное упрощение: `simplify(x**2 + 2*x + 1)`
-• Раскрытие скобок: `expand((x + 1)**2)`
+Просто отправьте математическое выражение!
 
 **Примеры:**
 `2 + 3`
@@ -61,9 +58,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 `C(5,2)`
 `Abs(-5)`
 `I**2`
-`expand((x + 1)**2)`
-
-Просто отправьте математическое выражение!
     """
     await update.message.reply_text(welcome_text, parse_mode='Markdown')
 
@@ -72,11 +66,22 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_input = update.message.text
     logger.info(f"Получено выражение от пользователя {update.effective_user.id}: {user_input}")
 
-    # Вычисляем результат
-    result = calculate(user_input)
+    try:
+        # Вычисляем результат
+        result = calculate(user_input)
 
-    # Отправляем результат пользователю
-    await update.message.reply_text(f"🧮 Результат:\n{result}")
+        # Отправляем результат пользователю
+        await update.message.reply_text(f"🧮 Результат:\n{result}")
+    except Exception as e:
+        logger.error(f"Ошибка при обработке выражения '{user_input}': {e}")
+        await update.message.reply_text("❌ Ошибка вычисления. Проверьте правильность выражения.")
+
+async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Обработчик ошибок"""
+    logger.error(f"Ошибка бота: {context.error}")
+    if isinstance(context.error, Conflict):
+        logger.critical("Конфликт: уже запущен другой экземпляр бота!")
+        sys.exit(1)
 
 def main():
     """Основная функция запуска бота"""
@@ -88,14 +93,19 @@ def main():
         application.add_handler(CommandHandler("start", start))
         application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
+        # Добавляем обработчик ошибок
+        application.add_error_handler(error_handler)
+
         # Запускаем бота
         print("Бот запущен...")
         application.run_polling()
 
+    except Conflict as e:
+        logger.critical(f"Конфликт: другой экземпляр бота уже запущен. Ошибка: {e}")
+        print("Ошибка: уже запущен другой экземпляр бота. Завершите его перед запуском нового.")
+        sys.exit(1)
     except Exception as e:
         logger.error(f"Критическая ошибка: {e}")
-        if "Conflict" in str(e):
-            print("Ошибка: уже запущен другой экземпляр бота. Завершите его перед запуском нового.")
         sys.exit(1)
 
 if __name__ == "__main__":
