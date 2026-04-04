@@ -7,6 +7,6 @@ bot = telebot.TeleBot(TOKEN)
 commands.register_handlers(bot)
 text_messages.register_handlers(bot)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     print("Бот запущен...")
-    bot.infinity_polling()
+    bot.polling(none_stop=True)
