@@ -1,4 +1,5 @@
 import logging
+import sys
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 from calculator import calculate
@@ -49,16 +50,23 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 def main():
     """Основная функция запуска бота"""
-    # Создаём приложение
-    application = Application.builder().token(BOT_TOKEN).build()
+    try:
+        # Создаём приложение
+        application = Application.builder().token(BOT_TOKEN).build()
 
-    # Добавляем обработчики
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+        # Добавляем обработчики
+        application.add_handler(CommandHandler("start", start))
+        application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
-    # Запускаем бота
-    print("Бот запущен...")
-    application.run_polling()
+        # Запускаем бота
+        print("Бот запущен...")
+        application.run_polling()
+
+    except Exception as e:
+        logger.error(f"Критическая ошибка: {e}")
+        if "Conflict" in str(e):
+            print("Ошибка: уже запущен другой экземпляр бота. Завершите его перед запуском нового.")
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
