@@ -1,6 +1,2 @@
-import os
-from dotenv import load_dotenv
-
-load_dotenv()
-
-TOKEN = os.getenv('TELEGRAM_API_TOKEN')
+# Конфигурация бота
+BOT_TOKEN = "8291462397:AAE94xlijZUL45k03wfnWlzXBOKUItNB2cQ"
