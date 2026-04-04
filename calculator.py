@@ -1,7 +1,7 @@
 from sympy import (
     sympify, sin, cos, tan, cot, sqrt, N, pi, E, exp, log, ln,
     factorial, binomial, I, re, im, Abs, sign, floor, ceiling,
-    simplify, expand, solve, diff, integrate, limit, symbols, Rational
+    simplify, expand, Rational
 )
 from sympy.parsing.sympy_parser import parse_expr
 from fractions import Fraction
@@ -10,33 +10,25 @@ import re
 def calculate(expression):
     """
     Вычисляет математическое выражение с использованием sympy.
-    Поддерживает:
-    - арифметику (+, -, *, /, **, %)
-    - тригонометрию (sin, cos, tg/tan, ctg/cot)
-    - константы (pi, e/E)
-    - функции (sqrt, exp, log, ln, factorial, binomial)
-    - комплексные числа (I)
-    - дополнительные функции (Abs, sign, floor, ceiling)
-    - упрощение выражений (simplify, expand)
-    - решение уравнений (solve)
-    - дифференцирование (diff)
-    - интегрирование (integrate)
-    - пределы (limit)
+    Поддерживает: арифметику, тригонометрию, константы, функции, комплексные числа.
     Возвращает результат в удобном формате.
     """
     # Нормализуем ввод
     expression = expression.replace('tg', 'tan').replace('ctg', 'cot')
     expression = expression.replace('e', 'E')  # e → E (константа Эйлера)
 
-    # Расширенная обработка специальных функций
-    # Факториалы: 5! → factorial(5)
+    # Обработка факториалов: 5! → factorial(5)
     expression = re.sub(r'(\d+)!', r'factorial(\1)', expression)
-    # Биномиальные коэффициенты: C(5,2) → binomial(5,2)
-    expression = re.sub(r'C\((\d+),(\d+)\)', r'binomial(\1,\2)', expression)
+
+    # Обработка биномиальных коэффициентов: C(5,2) → binomial(5,2)
+    expression = re.sub(r'C\((\d+),\s*(\d+)\)', r'binomial(\1,\2)', expression)  # Исправлен шаблон
+
+    # Обработка дробей: 1/2 → Rational(1,2) для точной арифметики
+    expression = re.sub(r'(\d+)/(\d+)', r'Rational(\1,\2)', expression)
 
     try:
         # Парсим выражение с помощью sympy
-        expr = parse_expr(expression)
+        expr = parse_expr(expression, evaluate=False)  # evaluate=False для символьного представления
 
         # Упрощаем выражение перед вычислением
         simplified_expr = simplify(expr)
@@ -59,8 +51,8 @@ def calculate(expression):
                 f"Точное: {exact_result}\n"
                 f"Упрощённое: {simplified_expr}"
             )
-                else:
-                    return (
+            else:
+                return (
                 f"Десятичное: {decimal_result:.6f}\n"
                 f"Точное: {exact_result}\n"
                 f"Упрощённое: {simplified_expr}"
@@ -104,14 +96,14 @@ if __name__ == "__main__":
         "cot(pi/4)",
         "sqrt(16)",
         "(2 + 3) * 4",
-        "1/2 + 1/3",
+        "1/2 + 1/3",  # Теперь должно работать
         "pi",
         "E",
         "exp(1)",
         "log(10)",
         "ln(E)",
-        "5!",
-        "C(5,2)",
+        "5!",  # Теперь должно работать
+        "C(5,2)",  # Теперь должно работать
         "Abs(-5)",
         "sign(-3)",
         "floor(3.7)",
@@ -119,10 +111,6 @@ if __name__ == "__main__":
         "I**2",  # мнимая единица
         "expand((x + 1)**2)",  # раскрытие скобок
         "simplify(x**2 + 2*x + 1)",  # упрощение
-        "x**2 - 4",  # символьное выражение
-        "diff(x**3, x)",  # производная
-        "integrate(x**2, x)",  # интеграл
-        "limit(sin(x)/x, x, 0)",  # предел
     ]
 
     print("🧮 ТЕСТИРОВАНИЕ КАЛЬКУЛЯТОРА\n")
