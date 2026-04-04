@@ -1,7 +1,7 @@
 from sympy import (
     sympify, sin, cos, tan, cot, sqrt, N, pi, E, exp, log, ln,
     factorial, binomial, I, re, im, Abs, sign, floor, ceiling,
-    simplify, expand
+    simplify, expand, solve, diff, integrate, limit, symbols, Rational
 )
 from sympy.parsing.sympy_parser import parse_expr
 from fractions import Fraction
@@ -18,7 +18,11 @@ def calculate(expression):
     - комплексные числа (I)
     - дополнительные функции (Abs, sign, floor, ceiling)
     - упрощение выражений (simplify, expand)
-    Возвращает результат в виде дроби или десятичного числа.
+    - решение уравнений (solve)
+    - дифференцирование (diff)
+    - интегрирование (integrate)
+    - пределы (limit)
+    Возвращает результат в удобном формате.
     """
     # Нормализуем ввод
     expression = expression.replace('tg', 'tan').replace('ctg', 'cot')
@@ -43,33 +47,31 @@ def calculate(expression):
         # Получаем десятичное представление
         decimal_result = N(exact_result)
 
-        # Пытаемся представить результат в виде дроби (только для вещественных чисел)
+        # Форматируем вывод в зависимости от типа результата
         if exact_result.is_real:
+            # Для вещественных чисел пытаемся представить в виде дроби
             try:
-                # Преобразуем десятичный результат в дробь
                 fraction_result = Fraction(decimal_result).limit_denominator(1000)
-
-                # Проверяем, насколько дробь близка к десятичному результату
                 if abs(fraction_result - decimal_result) < 1e-10:
                     return (
-                        f"Дробь: {fraction_result}\n"
-                        f"Десятичное: {decimal_result:.6f}\n"
-                        f"Точное: {exact_result}\n"
-                        f"Упрощённое: {simplified_expr}"
-                    )
+                f"Дробь: {fraction_result}\n"
+                f"Десятичное: {decimal_result:.6f}\n"
+                f"Точное: {exact_result}\n"
+                f"Упрощённое: {simplified_expr}"
+            )
                 else:
                     return (
-                        f"Десятичное: {decimal_result:.6f}\n"
-                        f"Точное: {exact_result}\n"
-                        f"Упрощённое: {simplified_expr}"
-                    )
+                f"Десятичное: {decimal_result:.6f}\n"
+                f"Точное: {exact_result}\n"
+                f"Упрощённое: {simplified_expr}"
+            )
             except:
                 return (
                     f"Десятичное: {decimal_result:.6f}\n"
-                    f"Точное: {exact_result}\n"
-                    f"Упрощённое: {simplified_expr}"
-                )
-        else:
+            f"Точное: {exact_result}\n"
+            f"Упрощённое: {simplified_expr}"
+        )
+        elif exact_result.has(I):
             # Для комплексных чисел
             real_part = N(re(exact_result))
             imag_part = N(im(exact_result))
@@ -78,6 +80,13 @@ def calculate(expression):
                 f"Действительная часть: {real_part:.6f}\n"
                 f"Мнимая часть: {imag_part:.6f}\n"
                 f"Точное: {exact_result}\n"
+                f"Упрощённое: {simplified_expr}"
+            )
+        else:
+            # Другие случаи
+            return (
+                f"Результат: {exact_result}\n"
+                f"Десятичное: {decimal_result:.6f}\n"
                 f"Упрощённое: {simplified_expr}"
             )
 
@@ -108,10 +117,16 @@ if __name__ == "__main__":
         "floor(3.7)",
         "ceiling(3.2)",
         "I**2",  # мнимая единица
-        "expand((x + 1)**2)",  # символьное упрощение
-        "simplify(x**2 + 2*x + 1)",  # символьное упрощение
+        "expand((x + 1)**2)",  # раскрытие скобок
+        "simplify(x**2 + 2*x + 1)",  # упрощение
+        "x**2 - 4",  # символьное выражение
+        "diff(x**3, x)",  # производная
+        "integrate(x**2, x)",  # интеграл
+        "limit(sin(x)/x, x, 0)",  # предел
     ]
 
-    for expr in test_expressions:
-        print(f"{expr} = {calculate(expr)}")
-        print("-" * 50)
+    print("🧮 ТЕСТИРОВАНИЕ КАЛЬКУЛЯТОРА\n")
+    for i, expr in enumerate(test_expressions, 1):
+        print(f"{i:2d}. {expr}")
+        print(f"    → {calculate(expr)}")
+        print("-" * 60)
