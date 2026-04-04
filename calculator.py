@@ -33,7 +33,6 @@ def calculate(expression):
         # Упрощаем выражение перед вычислением
         simplified_expr = simplify(expr)
 
-
         # Вычисляем точное значение
         exact_result = sympify(simplified_expr)
 
@@ -52,13 +51,13 @@ def calculate(expression):
                 f"Точное: {exact_result}\n"
                 f"Упрощённое: {simplified_expr}"
             )
-            else:
-                return (
+                else:
+                    return (
                 f"Десятичное: {decimal_result:.6f}\n"
                 f"Точное: {exact_result}\n"
                 f"Упрощённое: {simplified_expr}"
             )
-            except:
+            except (ValueError, TypeError):
                 return (
                     f"Десятичное: {decimal_result:.6f}\n"
             f"Точное: {exact_result}\n"
