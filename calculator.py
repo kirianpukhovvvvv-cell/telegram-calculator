@@ -21,7 +21,7 @@ def calculate(expression):
     expression = re.sub(r'(\d+)!', r'factorial(\1)', expression)
 
     # Обработка биномиальных коэффициентов: C(5,2) → binomial(5,2)
-    expression = re.sub(r'C\((\d+),\s*(\d+)\)', r'binomial(\1,\2)', expression)  # Исправлен шаблон
+    expression = re.sub(r'C\((\d+),\s*(\d+)\)', r'binomial(\1,\2)', expression)
 
     # Обработка дробей: 1/2 → Rational(1,2) для точной арифметики
     expression = re.sub(r'(\d+)/(\d+)', r'Rational(\1,\2)', expression)
@@ -32,6 +32,7 @@ def calculate(expression):
 
         # Упрощаем выражение перед вычислением
         simplified_expr = simplify(expr)
+
 
         # Вычисляем точное значение
         exact_result = sympify(simplified_expr)
@@ -96,25 +97,38 @@ if __name__ == "__main__":
         "cot(pi/4)",
         "sqrt(16)",
         "(2 + 3) * 4",
-        "1/2 + 1/3",  # Теперь должно работать
+        "1/2 + 1/3",  # Дробная арифметика
         "pi",
         "E",
         "exp(1)",
         "log(10)",
         "ln(E)",
-        "5!",  # Теперь должно работать
-        "C(5,2)",  # Теперь должно работать
-        "Abs(-5)",
-        "sign(-3)",
-        "floor(3.7)",
-        "ceiling(3.2)",
-        "I**2",  # мнимая единица
-        "expand((x + 1)**2)",  # раскрытие скобок
-        "simplify(x**2 + 2*x + 1)",  # упрощение
+        "5!",  # Факториал
+        "C(5,2)",  # Биномиальный коэффициент
+        "Abs(-5)",  # Модуль числа
+        "sign(-3)",  # Знак числа
+        "floor(3.7)",  # Округление вниз
+        "ceiling(3.2)",  # Округление вверх
+        "I**2",  # Комплексное число (i²)
+        "expand((x + 1)**2)",  # Раскрытие скобок
+        "simplify(x**2 + 2*x + 1)",  # Упрощение выражения
+        "diff(x**3, x)",  # Производная
+        "integrate(x**2, x)",  # Интеграл
+        "limit(sin(x)/x, x, 0)",  # Предел
+        "sqrt(2)**2",  # Проверка точности
+        "2**10",  # Возведение в степень
+        "3 * (4 + 5)",  # Скобки и умножение
+        "log(1)",  # Логарифм единицы
+        "sin(0)",  # Тригонометрия: sin(0)
+        "cos(0)",  # Тригонометрия: cos(0)
     ]
 
     print("🧮 ТЕСТИРОВАНИЕ КАЛЬКУЛЯТОРА\n")
     for i, expr in enumerate(test_expressions, 1):
         print(f"{i:2d}. {expr}")
-        print(f"    → {calculate(expr)}")
+        try:
+            result = calculate(expr)
+            print(f"    → {result}")
+        except Exception as e:
+            print(f"    ❌ Ошибка: {e}")
         print("-" * 60)
