@@ -106,6 +106,8 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
     if isinstance(context.error, Conflict):
         logger.critical("Конфликт: уже запущен другой экземпляр бота!")
         sys.exit(1)
+    elif isinstance(context.error, Exception):
+        await update.message.reply_text("Произошла внутренняя ошибка. Попробуйте позже.")
 
 def main():
     """Основная функция запуска бота"""
@@ -126,15 +128,10 @@ def main():
         # Добавляем обработчик ошибок
         application.add_error_handler(error_handler)
 
-        # Добавляем дополнительные команды (можно расширить)
-        # application.add_handler(CommandHandler("other_command", other_command_handler))
-
         # Запускаем бота
         print("Бот запущен...")
         application.run_polling(
-            poll_interval=1.0,  # Интервал опроса
-            concurrency=8,      # Количество параллельных запросов
-            post_shutdown=lambda: logger.info("Бот остановлен")
+            poll_interval=1.0  # Интервал опроса
         )
 
     except Conflict as e:
