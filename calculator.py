@@ -13,52 +13,53 @@ def calculate(expression):
     Поддерживает: арифметику, тригонометрию, константы, функции, комплексные числа.
     Возвращает результат в удобном формате.
     """
-    # Нормализуем ввод
+    # Обработка начального знака
+    expression = expression.strip()
+    if expression.startswith('+'):
+        expression = expression[1:]
+    elif expression.startswith('-'):
+        expression = '0' + expression
+    
+    # Нормализация ввода
     expression = expression.replace('tg', 'tan').replace('ctg', 'cot')
     expression = expression.replace('e', 'E')  # e → E (константа Эйлера)
 
-    # Обработка факториалов: 5! → factorial(5)
+    # Обработка специальных функций
     expression = re.sub(r'(\d+)!', r'factorial(\1)', expression)
-
-    # Обработка биномиальных коэффициентов: C(5,2) → binomial(5,2)
     expression = re.sub(r'C\((\d+),\s*(\d+)\)', r'binomial(\1,\2)', expression)
-
-    # Обработка дробей: 1/2 → Rational(1,2) для точной арифметики
     expression = re.sub(r'(\d+)/(\d+)', r'Rational(\1,\2)', expression)
 
     try:
-        # Парсим выражение с помощью sympy
+        # Парсинг и обработка выражения
         expr = parse_expr(expression, evaluate=False)
-
-        # Упрощаем выражение перед вычислением
         simplified_expr = simplify(expr)
-
-        # Вычисляем точное значение
         exact_result = sympify(simplified_expr)
-
-        # Получаем десятичное представление
         decimal_result = N(exact_result)
 
-        # Форматируем вывод в зависимости от типа результата
+        # Форматирование результата
         if exact_result.is_real:
-            # Для вещественных чисел пытаемся представить в виде дроби
             try:
                 fraction_result = Fraction(decimal_result).limit_denominator(1000)
                 if abs(fraction_result - decimal_result) < 1e-10:
                     return (
-                f"Дробь: {fraction_result}\n"
-                f"Десятичное: {decimal_result:.6f}\n"
-                f"Точное: {exact_result}\n"
-                f"Упрощённое: {simplified_expr}"
-            )
+                        f"Дробь: {fraction_result}\n"
+                        f"Десятичное: {decimal_result:.6f}\n"
+                        f"Точное: {exact_result}\n"
+                        f"Упрощённое: {simplified_expr}"
+                    )
+                else:
+                    return (
+                        f"Десятичное: {decimal_result:.6f}\n"
+                        f"Точное: {exact_result}\n"
+                        f"Упрощённое: {simplified_expr}"
+                    )
             except (ValueError, TypeError):
                 return (
                     f"Десятичное: {decimal_result:.6f}\n"
                     f"Точное: {exact_result}\n"
-            f"Упрощённое: {simplified_expr}"
-        )
+                    f"Упрощённое: {simplified_expr}"
+                )
         elif exact_result.has(I):
-            # Для комплексных чисел
             real_part = N(re(exact_result))
             imag_part = N(im(exact_result))
             return (
@@ -69,19 +70,20 @@ def calculate(expression):
                 f"Упрощённое: {simplified_expr}"
             )
         else:
-            # Другие случаи
             return (
                 f"Результат: {exact_result}\n"
                 f"Десятичное: {decimal_result:.6f}\n"
                 f"Упрощённое: {simplified_expr}"
             )
-    except Exception as e:
-        return f"Ошибка вычисления: {str(e)}"
+    except Exception:
+        return "❌ Произошла ошибка при вычислении. Проверьте правильность выражения."
 
 # Тестирование функций калькулятора
 if __name__ == "__main__":
     test_expressions = [
         "2 + 3",
+        "+5 + 3",  # Тест на плюс в начале
+        "-7 + 2",  # Тест на минус в начале
         "10 / 4",
         "sin(pi/6)",
         "cos(pi/3)",
@@ -113,6 +115,20 @@ if __name__ == "__main__":
         "log(1)",  # Логарифм единицы
         "sin(0)",  # Тригонометрия: sin(0)
         "cos(0)",  # Тригонометрия: cos(0)
+        "100 +",  # Некорректный ввод
+        "5! + 3",  # Факториал с плюсом
+        "C(3,2) + 1",  # Биномиальный коэффициент
+        "sqrt(-1)",  # Комплексное число
+        "2 + 2i",  # Комплексное число
+        "2 + 2j",  # Комплексное число
+        "2 + 2k",  # Некорректный ввод
+        "2 + 2 *",  # Неполный ввод
+        "2 + 2 / 0",  # Деление на ноль
+        "2 + 2 / 1",  # Корректное деление
+        "2 + 2 / 2",  # Корректное деление
+        "2 + 2 / 3",  # Корректное деление
+        "2 + 2 / 4",  # Корректное деление
+        "2 + 2 / 5",  # Корректное деление
     ]
 
     print("🧮 ТЕСТИРОВАНИЕ КАЛЬКУЛЯТОРА\n")
@@ -124,3 +140,7 @@ if __name__ == "__main__":
         except Exception as e:
             print(f"    ❌ Ошибка: {e}")
         print("-" * 60)
+
+if __name__ == "__main__":
+    # Запуск тестирования при прямом запуске файла
+    test_expressions()
