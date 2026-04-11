@@ -1,5 +1,6 @@
 import logging
 import sys
+import os
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 from calculator import calculate
@@ -12,6 +13,29 @@ logging.basicConfig(
     level=logging.INFO
 )
 logger = logging.getLogger(__name__)
+
+# Проверка единственного экземпляра бота
+def check_single_instance():
+    pid = str(os.getpid())
+    pidfile = "/tmp/bot.pid"
+    
+    if os.path.exists(pidfile):
+        with open(pidfile, 'r') as f:
+            old_pid = f.read().strip()
+            try:
+                os.kill(int(old_pid), 0)
+                logger.error(f"Уже запущен экземпляр бота с PID {old_pid}")
+                sys.exit(1)
+            except OSError:
+                pass
+    with open(pidfile, 'w') as f:
+        f.write(pid)
+    
+    def remove_pid():
+        os.remove(pidfile)
+    
+    import atexit
+    atexit.register(remove_pid)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Обработчик команды /start"""
@@ -58,7 +82,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 `C(5,2)`
 `Abs(-5)`
 `I**2`
-    """
+"""
     await update.message.reply_text(welcome_text, parse_mode='Markdown')
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -86,19 +110,32 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
 def main():
     """Основная функция запуска бота"""
     try:
+        # Проверяем единственный экземпляр бота
+        check_single_instance()
+
         # Создаём приложение
         application = Application.builder().token(BOT_TOKEN).build()
 
-        # Добавляем обработчики
+        # Добавляем обработчики команд
         application.add_handler(CommandHandler("start", start))
+        application.add_handler(CommandHandler("help", start))  # Добавляем команду help
+
+        # Добавляем обработчик сообщений
         application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
         # Добавляем обработчик ошибок
         application.add_error_handler(error_handler)
 
+        # Добавляем дополнительные команды (можно расширить)
+        # application.add_handler(CommandHandler("other_command", other_command_handler))
+
         # Запускаем бота
         print("Бот запущен...")
-        application.run_polling()
+        application.run_polling(
+            poll_interval=1.0,  # Интервал опроса
+            concurrency=8,      # Количество параллельных запросов
+            post_shutdown=lambda: logger.info("Бот остановлен")
+        )
 
     except Conflict as e:
         logger.critical(f"Конфликт: другой экземпляр бота уже запущен. Ошибка: {e}")
@@ -109,4 +146,8 @@ def main():
         sys.exit(1)
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        logger.info("Бот остановлен вручную")
+        sys.exit(0)
